@@ -170,7 +170,7 @@ class ListPresence(ft.SafeArea):
 
         self.counter: ft.Text = ft.Text(f"Total: {len(self.data)}", italic=True)
         self.send_button: ft.ElevatedButton = ft.ElevatedButton(
-            text="Send Message",
+            text="Enviar Mensagem",
             icon=ft.icons.SEND_ROUNDED,
             bgcolor=ft.colors.GREEN_700,
             color=ft.colors.WHITE,

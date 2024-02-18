@@ -171,9 +171,9 @@ class Control(ft.SafeArea):
             ]
         )
         self.content = self.main
-        self.to_call_list()
+        self.room_list()
 
-    def to_call_list(self):
+    def room_list(self):
         for client in self.data:
             if self.page.theme_mode == ft.ThemeMode.DARK:
                 self.list_names.controls.append(ClientName(self, client))
