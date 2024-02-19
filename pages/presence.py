@@ -180,7 +180,7 @@ class ListPresence(ft.SafeArea):
         self.check_selection_state()
         self.main: ft.Column = ft.Column(
             controls=[
-                ft.Row(controls=[ft.Text("Lista de Presença", size=18, weight=ft.FontWeight.W_600)],
+                ft.Row(controls=[ft.Text("Lista de Presença", size=20, weight=ft.FontWeight.W_800)],
                        alignment=ft.MainAxisAlignment.CENTER),
                 ft.Row(controls=[self.item, self.search], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 ft.Divider(height=10, color=ft.colors.TRANSPARENT),

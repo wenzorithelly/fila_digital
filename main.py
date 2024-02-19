@@ -4,10 +4,6 @@ from pages.presence import ListPresence
 from pages.control import Control
 from pages.settings import Settings
 
-toggle_style_sheet: dict = {"icon": ft.icons.DARK_MODE_ROUNDED, "icon_size": 18}
-_dark: str = ft.colors.with_opacity(0.5, "white")
-_light: str = ft.colors.with_opacity(0.5, "black")
-
 
 class LoginPage(ft.SafeArea):
     def __init__(self, app: 'App'):
@@ -66,41 +62,17 @@ class App(ft.SafeArea):
         self.control: Control = Control(page, visible=True)
         self.presence: ListPresence = ListPresence(page, visible=False, control=self.control)
         self.settings: Settings = Settings(page, visible=False)
-        self.title: ft.Text = ft.Text("Fila Digital - Admin", size=20, weight=ft.FontWeight.W_800)
-        self.toggle: ft.IconButton = ft.IconButton(
-            **toggle_style_sheet, on_click=lambda e: self.switch(e)
-        )
 
         self.main: ft.Column = ft.Column(
             controls=[
-                ft.Row(
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                    controls=[self.title, self.toggle]
-                ),
-                ft.Divider(height=10),
-                ft.Divider(height=10, color="transparent"),
                 ft.Container(
                     content=ft.Column([
                         self.control,
                         self.presence,
                         self.settings
                     ]))
-            ]
+            ], scroll=ft.ScrollMode.ALWAYS
         )
-
-    def switch(self, e) -> None:
-        if self.page.theme_mode == ft.ThemeMode.DARK:
-            self.page.theme_mode = ft.ThemeMode.LIGHT
-            self.toggle.icon = ft.icons.LIGHT_MODE_ROUNDED
-            self.page.navigation_bar.bgcolor = ft.colors.GREY_400
-            self.page.navigation_bar.active_color = ft.colors.GREY_800
-        else:
-            self.page.theme_mode = ft.ThemeMode.DARK
-            self.toggle.icon = ft.icons.DARK_MODE_ROUNDED
-            self.page.navigation_bar.bgcolor = ft.colors.GREY_900
-            self.page.navigation_bar.active_color = ft.colors.WHITE70
-
-        self.page.update()
 
     def change_tab(self, e):
         my_index = e.control.selected_index
@@ -131,7 +103,7 @@ def main(page: ft.Page):
     page.theme = theme
 
     app: App = App(page)
-    print(56)
+    print(57)
     page.add(app)
     page.update()
 
