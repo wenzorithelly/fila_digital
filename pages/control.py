@@ -158,6 +158,8 @@ class Control(ft.SafeArea):
             controls=[
                 ft.Row(controls=[ft.Text("Controle da Sala", size=20, weight=ft.FontWeight.W_800)],
                        alignment=ft.MainAxisAlignment.CENTER),
+                ft.Divider(height=5),
+                ft.Divider(height=10, color="transparent"),
                 ft.Row(controls=[self.item, self.search], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 ft.Divider(height=10, color=ft.colors.TRANSPARENT),
                 ft.Container(content=self.list_names, height=self.page.window_height+320, expand=False),

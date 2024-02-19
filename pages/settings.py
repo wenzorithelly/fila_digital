@@ -179,7 +179,7 @@ class Settings(ft.SafeArea):
             **toggle_style_sheet, on_click=lambda e: self.switch(e)
         )
         self.bio = ft.Text("App desenvolvido por Wenzo Rithelly, caso aconteça algum erro, clique no botão abaixo",
-                           size=12, width=230)
+                           size=12)
         self.call_me: ft.ElevatedButton = ft.ElevatedButton(
             text="Call Support",
             icon=ft.icons.SEND_ROUNDED,
