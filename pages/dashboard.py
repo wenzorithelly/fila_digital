@@ -1,12 +1,9 @@
 import flet as ft
-import plotly.express as px
-from flet.plotly_chart import PlotlyChart
 import pandas as pd
 from supabase import create_client
 from dotenv import load_dotenv
 from datetime import datetime
 import pytz
-import base64
 import os
 
 load_dotenv()
@@ -34,7 +31,6 @@ class Charts:
         return clients_data
 
     def presences_and_absences(self):
-
         normal_radius = 50
         hover_radius = 60
         normal_title_style = ft.TextStyle(
@@ -136,8 +132,69 @@ class Charts:
 
         return chart
 
+    def average_time_in_room(self):
+        today = datetime.now().date()
+        data = self.df.loc[self.df['entered_at'].dt.date == today].copy()
+        Q1 = data['time_in_room'].quantile(0.25)
+        Q3 = data['time_in_room'].quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
 
-toggle_style_sheet: dict = {"icon": ft.icons.REFRESH_ROUNDED, "icon_size": 18}
+        filtered = data[(data['time_in_room'] >= lower_bound) & (data['time_in_room'] <= upper_bound)]
+        filtered = filtered[filtered['time_in_room'] >= pd.Timedelta(minutes=3)]
+        filtered['group'] = pd.cut(data['entered_at'].dt.hour, bins=[7, 14, 18, 23], labels=['8h - 13h',
+                                                                                             '14h - 18h',
+                                                                                             '19h - 22h'])
+        time_per_session = filtered[['time_in_room', 'group']].copy()
+        time_per_session['time_in_room_minutes'] = time_per_session['time_in_room'].dt.total_seconds() / 60.0
+        grouped_time_per_session = time_per_session.groupby('group', observed=True).mean().reset_index()
+        grouped_time_per_session['time_in_room_minutes'] = round(grouped_time_per_session['time_in_room_minutes'], 2)
+
+        data_series = [
+            ft.LineChartData(
+                data_points=[
+                    ft.LineChartDataPoint(minutes, day)
+                    for day, minutes in
+                    zip(grouped_time_per_session['group'], grouped_time_per_session['time_in_room_minutes'])
+                ],
+                stroke_width=5,
+                color=ft.colors.CYAN,
+                curved=True,
+                stroke_cap_round=True,
+            )
+        ]
+
+        chart = ft.LineChart(
+            data_series=data_series,
+            border=ft.border.all(3, ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE)),
+            horizontal_grid_lines=ft.ChartGridLines(interval=1, color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE),
+                                                    width=1),
+            vertical_grid_lines=ft.ChartGridLines(interval=1, color=ft.colors.with_opacity(0.2, ft.colors.ON_SURFACE),
+                                                  width=1),
+            tooltip_bgcolor=ft.colors.with_opacity(0.8, ft.colors.BLUE_GREY),
+            min_y=0,
+            max_y=grouped_time_per_session['time_in_room_minutes'].max(),
+            expand=True,
+            left_axis=ft.ChartAxis(
+                labels=[
+                    ft.ChartAxisLabel(value=val, label=ft.Text(str(val), size=14, weight=ft.FontWeight.BOLD))
+                    for val in grouped_time_per_session['time_in_room_minutes']
+                ]
+            ),
+            bottom_axis=ft.ChartAxis(
+                labels=[
+                    ft.ChartAxisLabel(value=val, label=ft.Text(str(val), size=16, weight=ft.FontWeight.BOLD,
+                                                               color=ft.colors.with_opacity(0.5, ft.colors.ON_SURFACE)))
+                    for val in grouped_time_per_session['group']
+                ]
+            )
+        )
+
+        return chart
+
+
+toggle_style_sheet: dict = {"icon": ft.icons.REFRESH_ROUNDED, "icon_size": 20}
 
 
 class Dashboard(ft.SafeArea):
@@ -152,6 +209,7 @@ class Dashboard(ft.SafeArea):
 
         self.presences_and_absences = self.charts.presences_and_absences()
         self.presence_per_session = self.charts.presence_per_session()
+        self.average_time_in_room = self.charts.average_time_in_room()
         self.main: ft.Column = ft.Column([
             ft.Container(content=ft.Column([
                 ft.Row(
@@ -159,13 +217,18 @@ class Dashboard(ft.SafeArea):
                     controls=[self.title, self.toggle]
                 ),
                 ft.Divider(height=5),
-                ft.Divider(height=10, color="transparent"),
+                ft.Divider(height=10, color=ft.colors.TRANSPARENT),
 
 
                 ft.Container(content=self.presences_and_absences, alignment=ft.alignment.center),
                 ft.Row(controls=[ft.Text("HOJE: Presenças por Sessão", size=18, weight=ft.FontWeight.W_500)],
                        alignment=ft.MainAxisAlignment.CENTER),
-                ft.Container(content=self.presence_per_session, alignment=ft.alignment.center)
+                ft.Container(content=self.presence_per_session, alignment=ft.alignment.center),
+                ft.Divider(height=10, color=ft.colors.TRANSPARENT),
+                ft.Row(controls=[ft.Text("Tempo Médio de Orações", size=18, weight=ft.FontWeight.W_500)],
+                       alignment=ft.MainAxisAlignment.CENTER),
+                ft.Container(content=self.average_time_in_room, alignment=ft.alignment.center)
+
             ]), expand=True)
         ],
             scroll=ft.ScrollMode.ALWAYS)

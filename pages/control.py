@@ -76,7 +76,7 @@ def delete_client(client_phone, page: ft.Page):
         display_error_banner(page, a)
 
 
-toggle_style_sheet: dict = {"icon": ft.icons.DARK_MODE_ROUNDED, "icon_size": 18}
+toggle_style_sheet: dict = {"icon": ft.icons.REFRESH_ROUNDED, "icon_size": 20}
 search_style_sheet: dict = {"icon": ft.icons.SEARCH_ROUNDED, "icon_size": 25}
 item_style_sheet: dict = {"height": 35, "expand": True, "cursor_height": 15, "hint_text": "Pesquisar um nome...", "content_padding": 7, "border_radius": 12}
 client_name_style_sheet: dict = {"height": 40}
@@ -127,6 +127,10 @@ class Control(ft.SafeArea):
     def __init__(self, page: ft.Page, visible):
         super().__init__(visible)
         self.page = page
+        self.title: ft.Text = ft.Text("Lista de Presença", size=20, weight=ft.FontWeight.W_800)
+        self.toggle: ft.IconButton = ft.IconButton(
+            **toggle_style_sheet, on_click=lambda e: self.refresh(e)
+        )
         self.item: ft.TextField = ft.TextField(**item_style_sheet, on_submit=lambda e: self.search_items())
         self.data = fetch_data(page=self.page)
         self.list_names: ft.ListView = ft.ListView(expand=True, spacing=5)
@@ -156,10 +160,12 @@ class Control(ft.SafeArea):
 
         self.main: ft.Column = ft.Column(
             controls=[
-                ft.Row(controls=[ft.Text("Controle da Sala", size=20, weight=ft.FontWeight.W_800)],
-                       alignment=ft.MainAxisAlignment.CENTER),
+                ft.Row(
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    controls=[self.title, self.toggle]
+                ),
                 ft.Divider(height=5),
-                ft.Divider(height=10, color="transparent"),
+                ft.Divider(height=10, color=ft.colors.TRANSPARENT),
                 ft.Row(controls=[self.item, self.search], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 ft.Divider(height=10, color=ft.colors.TRANSPARENT),
                 ft.Container(content=self.list_names, height=self.page.window_height+320, expand=False),
@@ -271,3 +277,13 @@ class Control(ft.SafeArea):
         counter = len([client for client in self.data if client['entered_at']])
         self.page.update()
         return counter
+
+    def refresh(self, e):
+        self.toggle.content = ft.ProgressRing(width=16, height=16, stroke_width=2, color=ft.colors.WHITE)
+        self.toggle.icon = None
+        self.page.update()
+
+        self.refresh_list()
+
+        self.toggle.icon = ft.icons.REFRESH_ROUNDED
+        self.page.update()

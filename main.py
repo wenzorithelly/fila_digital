@@ -105,7 +105,7 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.DARK
     theme = ft.Theme()
     page.theme = theme
-    print(9)
+    print(19)
     app: App = App(page)
     page.add(app)
     page.update()

@@ -112,7 +112,7 @@ def send_message(number, message, page: ft.Page):
 # ==============================================
 # STYLESHEETS
 # ==============================================
-toggle_style_sheet: dict = {"icon": ft.icons.DARK_MODE_ROUNDED, "icon_size": 18}
+toggle_style_sheet: dict = {"icon": ft.icons.REFRESH_ROUNDED, "icon_size": 20}
 search_style_sheet: dict = {"icon": ft.icons.SEARCH_ROUNDED, "icon_size": 25}
 item_style_sheet: dict = {"height": 35, "expand": True, "cursor_height": 15, "hint_text": "Pesquisar um nome...", "content_padding": 7, "border_radius": 12}
 client_name_style_sheet: dict = {"height": 40}
@@ -161,6 +161,10 @@ class ListPresence(ft.SafeArea):
         super().__init__(visible=visible)
         self.page = page
         self.control = control
+        self.title: ft.Text = ft.Text("Lista de Presença", size=20, weight=ft.FontWeight.W_800)
+        self.toggle: ft.IconButton = ft.IconButton(
+            **toggle_style_sheet, on_click=lambda e: self.refresh(e)
+        )
         self.item: ft.TextField = ft.TextField(**item_style_sheet, on_submit=lambda e: self.search_items())
         self.data = fetch_data(page=self.page)
         self.message_data = fetch_default_message(page=self.page)
@@ -180,10 +184,12 @@ class ListPresence(ft.SafeArea):
         self.check_selection_state()
         self.main: ft.Column = ft.Column(
             controls=[
-                ft.Row(controls=[ft.Text("Lista de Presença", size=20, weight=ft.FontWeight.W_800)],
-                       alignment=ft.MainAxisAlignment.CENTER),
+                ft.Row(
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    controls=[self.title, self.toggle]
+                ),
                 ft.Divider(height=5),
-                ft.Divider(height=10, color="transparent"),
+                ft.Divider(height=10, color=ft.colors.TRANSPARENT),
                 ft.Row(controls=[self.item, self.search], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 ft.Divider(height=10, color=ft.colors.TRANSPARENT),
                 ft.Container(content=self.list_names, height=self.page.window_height+320, expand=False),
@@ -265,3 +271,13 @@ class ListPresence(ft.SafeArea):
         else:
             self.send_button.disabled = True
             self.page.update()
+
+    def refresh(self, e):
+        self.toggle.content = ft.ProgressRing(width=16, height=16, stroke_width=2, color=ft.colors.WHITE)
+        self.toggle.icon = None
+        self.page.update()
+
+        self.refresh_everything()
+
+        self.toggle.icon = ft.icons.REFRESH_ROUNDED
+        self.page.update()
