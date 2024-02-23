@@ -3,6 +3,7 @@ import flet as ft
 from pages.presence import ListPresence
 from pages.control import Control
 from pages.settings import Settings
+from pages.dashboard import Dashboard
 
 
 class LoginPage(ft.SafeArea):
@@ -61,6 +62,7 @@ class App(ft.SafeArea):
         self.show_login_page()
         self.control: Control = Control(page, visible=True)
         self.presence: ListPresence = ListPresence(page, visible=False, control=self.control)
+        self.dashboard: Dashboard = Dashboard(page, visible=False)
         self.settings: Settings = Settings(page, visible=False)
 
         self.main: ft.Column = ft.Column(
@@ -69,6 +71,7 @@ class App(ft.SafeArea):
                     content=ft.Column([
                         self.control,
                         self.presence,
+                        self.dashboard,
                         self.settings
                     ]))
             ], scroll=ft.ScrollMode.ALWAYS
@@ -78,6 +81,7 @@ class App(ft.SafeArea):
         my_index = e.control.selected_index
         self.control.visible = my_index == 0
         self.presence.visible = my_index == 1
+        self.dashboard.visible = my_index == 2
         self.settings.visible = my_index == 3
         self.page.update()
 
@@ -101,7 +105,7 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.DARK
     theme = ft.Theme()
     page.theme = theme
-
+    print(9)
     app: App = App(page)
     page.add(app)
     page.update()

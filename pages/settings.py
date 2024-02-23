@@ -185,7 +185,7 @@ class Settings(ft.SafeArea):
             icon=ft.icons.SEND_ROUNDED,
             bgcolor=ft.colors.with_opacity(0.5, "white"),
             color=ft.colors.GREY_900,
-            height=50,
+            height=30,
             on_click=self.call_support
 
         )

@@ -233,7 +233,7 @@ class ListPresence(ft.SafeArea):
         for client in selected_clients:
             send_message(client['phone'], self._text_message, page=self.page)
             update_message_sent_status(client['phone'], page=self.page)
-            time.sleep(0.1)
+            time.sleep(2)
 
         self.refresh_everything()
 
