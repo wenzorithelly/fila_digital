@@ -43,7 +43,7 @@ def insert_message(content, page: ft.Page):
     try:
         result = supabase.table("messages").insert({"content": content}).execute()
 
-        return True if result.status_code in range(200, 300) else False
+        return True
     except Exception as a:
         display_error_banner(page, a)
         return False
@@ -51,10 +51,8 @@ def insert_message(content, page: ft.Page):
 
 def update_default_message(message_id, page: ft.Page):
     try:
-        # Set all messages default_message to FALSE
         supabase.table("messages").update({"default_message": "FALSE"}).is_("default_message", "TRUE").execute()
 
-        # Set the selected message default_message to TRUE
         now = datetime.now()
         result = supabase.table("messages").update({"default_message": "TRUE", "updated_at": str(now)}).eq("id", message_id).execute()
 

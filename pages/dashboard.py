@@ -17,12 +17,14 @@ class Charts:
         clients_data = self.fetch_data()
         self.df = pd.DataFrame(clients_data)
         brazil_tz = pytz.timezone('America/Sao_Paulo')
-        self.df['created_at'] = pd.to_datetime(self.df['created_at'], errors='coerce')
+        self.df['created_at'] = pd.to_datetime(self.df['created_at'], errors='coerce').dt.tz_convert(brazil_tz)
+
         self.df['entered_at'] = pd.to_datetime(self.df['entered_at'], errors='coerce')
+        self.df['entered_at'] = self.df['entered_at'].apply(lambda x: x.tz_convert(brazil_tz) if pd.notna(x) else x)
+
         self.df['left_at'] = pd.to_datetime(self.df['left_at'], errors='coerce')
-        self.df['created_at'] = self.df['created_at'].dt.tz_convert(brazil_tz)
-        self.df['entered_at'] = self.df['entered_at'].dt.tz_convert(brazil_tz)
-        self.df['left_at'] = self.df['left_at'].dt.tz_convert(brazil_tz)
+        self.df['left_at'] = self.df['left_at'].apply(lambda x: x.tz_convert(brazil_tz) if pd.notna(x) else x)
+
         self.df['time_in_room'] = self.df['left_at'] - self.df['entered_at']
 
     @staticmethod
@@ -235,12 +237,18 @@ class Dashboard(ft.SafeArea):
 
         self.content = self.main
 
+    def load_data(self):
+        self.presences_and_absences = self.charts.presences_and_absences()
+        self.presence_per_session = self.charts.presence_per_session()
+        self.average_time_in_room = self.charts.average_time_in_room()
+
     def refresh(self, e):
         self.toggle.content = ft.ProgressRing(width=16, height=16, stroke_width=2, color=ft.colors.WHITE)
         self.toggle.icon = None
         self.page.update()
 
         self.charts.fetch_data()
+        self.load_data()
 
         self.toggle.icon = ft.icons.REFRESH_ROUNDED
         self.page.update()
