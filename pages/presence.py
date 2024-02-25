@@ -32,7 +32,7 @@ def display_error_banner(page, error):
 
 def fetch_data(page: ft.Page) -> list:
     try:
-        result = supabase.table("clients").select("first_name, last_name, number").is_("entered_at", "NULL").is_("message_sent", "FALSE").execute()
+        result = supabase.table("clients").select("first_name, last_name, number").is_("entered_at", "NULL").is_("message_sent", "FALSE").order("created_at").execute()
         clients = result.data
 
         name_list = [{'name': f"{client['first_name']} {client['last_name']}", 'phone': client['number']} for client in clients if client['first_name'] and client['last_name']]
