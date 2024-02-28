@@ -34,7 +34,7 @@ def fetch_data(page: ft.Page) -> list:
         result = supabase.table("clients").select("first_name, last_name, number, entered_at").is_("message_sent", "TRUE").is_("left_at", "NULL").execute()
         clients = result.data
 
-        name_list = [{'name': f"{client['first_name']} {client['last_name']}", 'phone': client['number'], 'entered_at': client.get('entered_at') is not None} for client in clients if client.get('first_name') and client.get('last_name')]
+        name_list = [{'name': f"{client['first_name']} {client['last_name']}", 'phone': client['number'], 'entered_at': client.get('entered_at') is not None} for client in clients if client.get('first_name')]
 
         return name_list
 
