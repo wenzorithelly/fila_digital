@@ -32,11 +32,13 @@ def display_error_banner(page, error):
 
 def fetch_data(page: ft.Page) -> list:
     try:
-        result = supabase.table("clients").select("first_name, last_name, number").is_("entered_at", "NULL").is_("message_sent", "FALSE").order("created_at", desc=False).execute()
+        result = supabase.table("clients").select("first_name, last_name, number").is_("message_sent", "FALSE").order("created_at", desc=False).execute()
         clients = result.data
+        print(clients)
 
-        name_list = [{'name': f"{client['first_name']} {client['last_name']}", 'phone': client['number']} for client in clients if client['first_name'] and client['last_name']]
+        name_list = [{'name': f"{client['first_name']} {client['last_name']}", 'phone': client['number']} for client in clients if client['first_name']]
 
+        print("name_list", name_list)
         return name_list
 
     except Exception as a:
@@ -91,21 +93,21 @@ def send_message(number, message, page: ft.Page):
         "chatId": f"55{whatsapp}@c.us",
         "message": f"{message}"
     }
-    endpoint = 'https://waapi.app/api/v1/instances/5384/client/action/send-message'
+    endpoint = 'https://waapi.app/api/v1/instances/6309/client/action/send-message'
     response = requests.post(endpoint, json=payload, headers=headers)
     if response.json()["data"]["status"] == 'success':
-        page.snack = ft.SnackBar(
+        page.snack_bar = ft.SnackBar(
             bgcolor=ft.colors.GREEN_300,
             content=ft.Text(f"Mensagem Enviada!")
         )
-        page.snack.open = True
+        page.snack_bar.open = True
         page.update()
     else:
-        page.snack = ft.SnackBar(
+        page.snack_bar = ft.SnackBar(
             bgcolor=ft.colors.RED_300,
             content=ft.Text(f'Erro ao enviar mensagem: {response.json()["data"]["status"]}')
         )
-        page.snack.open = True
+        page.snack_bar.open = True
         page.update()
 
 
@@ -204,7 +206,9 @@ class ListPresence(ft.SafeArea):
         self.to_call_list()
 
     def to_call_list(self):
+        print("Data to populate list:", self.data)
         for client in self.data:
+            print("Adding client to list:", client)
             if self.page.theme_mode == ft.ThemeMode.DARK:
                 self.list_names.controls.append(ClientName(self, client))
                 self.list_names.controls.append(ft.Divider(height=2))
@@ -212,6 +216,7 @@ class ListPresence(ft.SafeArea):
                 self.list_names.controls.append(ClientName(self, client))
                 self.list_names.controls.append(ft.Divider(height=2))
 
+        print("List controls after population:", self.list_names.controls)
         self.page.update()
 
     def search_items(self):

@@ -127,7 +127,7 @@ class Control(ft.SafeArea):
     def __init__(self, page: ft.Page, visible):
         super().__init__(visible)
         self.page = page
-        self.title: ft.Text = ft.Text("Lista de Presença", size=20, weight=ft.FontWeight.W_800)
+        self.title: ft.Text = ft.Text("Controle de Sala", size=20, weight=ft.FontWeight.W_800)
         self.toggle: ft.IconButton = ft.IconButton(
             **toggle_style_sheet, on_click=lambda e: self.refresh(e)
         )
