@@ -34,11 +34,9 @@ def fetch_data(page: ft.Page) -> list:
     try:
         result = supabase.table("clients").select("first_name, last_name, number").is_("message_sent", "FALSE").order("created_at", desc=False).execute()
         clients = result.data
-        print(clients)
 
         name_list = [{'name': f"{client['first_name']} {client['last_name']}", 'phone': client['number']} for client in clients if client['first_name']]
 
-        print("name_list", name_list)
         return name_list
 
     except Exception as a:
@@ -200,15 +198,13 @@ class ListPresence(ft.SafeArea):
                 ft.Divider(height=12, color=ft.colors.TRANSPARENT),
                 ft.Row(controls=[self.send_button],
                        alignment=ft.MainAxisAlignment.CENTER)
-            ]
+            ], scroll=ft.ScrollMode.ALWAYS
         )
         self.content = self.main
         self.to_call_list()
 
     def to_call_list(self):
-        print("Data to populate list:", self.data)
         for client in self.data:
-            print("Adding client to list:", client)
             if self.page.theme_mode == ft.ThemeMode.DARK:
                 self.list_names.controls.append(ClientName(self, client))
                 self.list_names.controls.append(ft.Divider(height=2))
@@ -216,7 +212,6 @@ class ListPresence(ft.SafeArea):
                 self.list_names.controls.append(ClientName(self, client))
                 self.list_names.controls.append(ft.Divider(height=2))
 
-        print("List controls after population:", self.list_names.controls)
         self.page.update()
 
     def search_items(self):

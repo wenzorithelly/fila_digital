@@ -1,5 +1,7 @@
 import flet as ft
 import os
+import requests
+import time
 from supabase import create_client
 from datetime import datetime
 from dotenv import load_dotenv
@@ -31,7 +33,7 @@ def display_error_banner(page, error):
 
 def fetch_data(page: ft.Page) -> list:
     try:
-        result = supabase.table("clients").select("first_name, last_name, number, entered_at").is_("message_sent", "TRUE").is_("left_at", "NULL").execute()
+        result = supabase.table("clients").select("first_name, last_name, number, entered_at").is_("message_sent", "TRUE").is_("left_at", "NULL").order("first_name").execute()
         clients = result.data
 
         name_list = [{'name': f"{client['first_name']} {client['last_name']}", 'phone': client['number'], 'entered_at': client.get('entered_at') is not None} for client in clients if client.get('first_name')]
@@ -74,6 +76,55 @@ def delete_client(client_phone, page: ft.Page):
 
     except Exception as a:
         display_error_banner(page, a)
+
+
+def fetch_default_message(page: ft.Page) -> dict:
+    try:
+        result = supabase.table("messages").select("id, content").is_("default_message", "true").limit(1).execute()
+        message = result.data[0] if result.data else None
+
+        return {'id': message['id'], 'message': message['content']} if message else {}
+
+    except Exception as a:
+        display_error_banner(page, a)
+        return {}
+
+
+def send_message(number, message, page: ft.Page):
+    def remove_ninth_digit(phone):
+        phone_number = phone
+        number_str = str(phone_number)
+        if len(number_str) > 10 and number_str[2] == '9':
+            phone_number = number_str[:2] + number_str[3:]
+
+        return phone_number
+
+    whatsapp = remove_ninth_digit(number)
+    headers = {
+        "Authorization": "Bearer " + os.environ.get("WAAPI_TOKEN"),
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "chatId": f"55{whatsapp}@c.us",
+        "message": f"{message}"
+    }
+    endpoint = 'https://waapi.app/api/v1/instances/6309/client/action/send-message'
+    response = requests.post(endpoint, json=payload, headers=headers)
+    if response.json()["data"]["status"] == 'success':
+        page.snack_bar = ft.SnackBar(
+            bgcolor=ft.colors.GREEN_300,
+            content=ft.Text(f"Mensagem Enviada!")
+        )
+        page.snack_bar.open = True
+        page.update()
+    else:
+        page.snack_bar = ft.SnackBar(
+            bgcolor=ft.colors.RED_300,
+            content=ft.Text(f'Erro ao enviar mensagem: {response.json()["data"]["status"]}')
+        )
+        page.snack_bar.open = True
+        page.update()
 
 
 toggle_style_sheet: dict = {"icon": ft.icons.REFRESH_ROUNDED, "icon_size": 20}
@@ -152,6 +203,16 @@ class Control(ft.SafeArea):
             width=120,
             on_click=self.change_state
         )
+        self.message_data = fetch_default_message(page=self.page)
+        self._text_message = self.message_data["message"] if self.message_data else "Olá, sua vez chegou"
+        self.send_button: ft.ElevatedButton = ft.ElevatedButton(
+            text="Reenviar",
+            icon=ft.icons.SEND_ROUNDED,
+            bgcolor=ft.colors.GREEN_700,
+            color=ft.colors.WHITE,
+            height=30,
+            on_click=self.send_messages  # Bind the send_messages function
+        )
         self.check_selection_state()
         self.search: ft.IconButton = ft.IconButton(**search_style_sheet, on_click=lambda e: self.search_items())
         self.total_counter: ft.Text = ft.Text(f"Total: {len(self.data)}", italic=True)
@@ -167,7 +228,7 @@ class Control(ft.SafeArea):
                 ft.Divider(height=5),
                 ft.Divider(height=10, color=ft.colors.TRANSPARENT),
                 ft.Row(controls=[self.item, self.search], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                ft.Divider(height=10, color=ft.colors.TRANSPARENT),
+                ft.Divider(height=10),
                 ft.Container(content=self.list_names, height=self.page.window_height+320, expand=False),
                 ft.Divider(height=10),
                 ft.Row(controls=[self.presence_counter, self.total_counter], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
@@ -175,8 +236,11 @@ class Control(ft.SafeArea):
                 ft.Row(controls=[self.present, self.left],
                        alignment=ft.MainAxisAlignment.CENTER,
                        spacing=40
-                       )
-            ]
+                       ),
+                ft.Row([
+                    self.send_button
+                ], alignment=ft.MainAxisAlignment.CENTER)
+            ], scroll=ft.ScrollMode.ALWAYS
         )
         self.content = self.main
         self.room_list()
@@ -207,6 +271,21 @@ class Control(ft.SafeArea):
                 self.list_names.controls.append(ClientName(self, client))
                 self.list_names.controls.append(ft.Divider(height=2))
 
+        self.page.update()
+
+    def send_messages(self, e):
+        self.send_button.content = ft.ProgressRing(width=16, height=16, stroke_width=2, color=ft.colors.WHITE)
+        self.send_button.icon = None
+        self.page.update()
+        selected_clients = [client.client for client in self.list_names.controls if isinstance(client, ClientName) and client.selected]
+
+        for client in selected_clients:
+            send_message(client['phone'], self._text_message, page=self.page)
+            time.sleep(2)
+
+        self.send_button.content = None
+        self.send_button.icon = ft.icons.SEND_ROUNDED
+        self.send_button.text = "Reenviar"
         self.page.update()
 
     def change_state(self, e):
@@ -243,6 +322,9 @@ class Control(ft.SafeArea):
         for client in self.data:
             self.list_names.controls.append(ClientName(self, client))
             self.list_names.controls.append(ft.Divider(height=2))
+
+        self.send_button.content = None
+        self.send_button.text = "Enviar"
 
         self.present.content = None
         self.present.text = "Entrou"

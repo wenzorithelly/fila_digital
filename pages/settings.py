@@ -204,7 +204,7 @@ class Settings(ft.SafeArea):
                 ft.Divider(height=5),
                 ft.Row(controls=[self.bio], alignment=ft.MainAxisAlignment.CENTER),
                 ft.Row(controls=[self.call_me], alignment=ft.MainAxisAlignment.CENTER)
-            ], scroll=ft.ScrollMode.ALWAYS
+            ], scroll=ft.ScrollMode.AUTO
         )
 
         self.content = self.main

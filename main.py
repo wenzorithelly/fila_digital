@@ -105,10 +105,12 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.DARK
     theme = ft.Theme()
     page.theme = theme
+    page.scroll = ft.ScrollMode.ALWAYS
+
     app: App = App(page)
     page.add(app)
     page.update()
 
 
 if __name__ == "__main__":
-    ft.app(target=main, assets_dir="assets")
+    ft.app(target=main, assets_dir="assets", view=ft.WEB_BROWSER)
